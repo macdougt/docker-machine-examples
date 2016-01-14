@@ -1,0 +1,61 @@
+#!/usr/bin/env perl
+
+my $machine_ls_swarm_command = "docker-machine ls --filter swarm=swarm-master";
+my $container_string = shift;
+my @machines = ();
+my $ra_machines = \@machines;
+
+# Grab the machine names if they are part of a swarm
+&command_pipe_with_callback($machine_ls_swarm_command, \&get_machines_callback, $ra_machines);
+
+# List the container matching the container search and create a hash
+# to house them 
+foreach my $machine (@$ra_machines) {
+	print "env $machine\n";
+	my $env_command = "docker-machine env $machine";
+
+	# Set the context to current machine
+	&command_pipe_with_callback($env_command, \&set_env_callback);
+	
+	# Filter out the containers matching $container_string
+	my $container_command = "docker ps -a";
+	&command_pipe_with_callback($container_command, \&filter_regex_callback, $container_string);
+}
+
+sub get_machines_callback {
+	my $string_input = shift;
+	my $ra_machines = shift;
+	if (! /^NAME/) {
+		my @record = split(/\s+/,$_);
+		push(@$ra_machines,$record[0]);
+	}
+}
+
+sub set_env_callback {
+	my $string_input = shift;
+	# Grab and set the environment variables
+	if (/export\s+([^=]+)=\"([^"]+)\"/) {
+		#print "$1 $2\n";
+		$ENV{$1} = $2;
+	}
+}
+
+
+sub filter_regex_callback {
+	my $string_input = shift;
+	my $filter_string = shift;
+	if ($string_input =~ /$filter_string/) {
+		print $string_input;
+	}
+}
+
+sub command_pipe_with_callback {
+    my $command = shift;
+    my $callback = shift;
+	open (PIPE3, "$command |") || die "Sorry, I couldn't open pipe.\n";
+	while (<PIPE3>) {		
+		&$callback($_,@_);
+	}
+	close PIPE3;
+}
+
