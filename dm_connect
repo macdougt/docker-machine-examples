@@ -2,17 +2,20 @@
 my $command = "docker-machine ls";
 my @list;
 
-open (PIPE, "$command |") || die "Sorry, I couldn't open pipe.\n";
-while (<PIPE>) {
-  next if /^NAME/;
-  chomp($_);
-  push(@list, $_);
+my $chosen_machine = shift;
+
+if ($chosen_machine !~ /\w/) {
+  open (PIPE, "$command |") || die "Sorry, I couldn't open pipe.\n";
+  while (<PIPE>) {
+    next if /^NAME/;
+    chomp($_);
+    push(@list, $_);
+  }
+  close PIPE;
+
+  my $chosen_machine_info = &getPick(\@list);
+  $chosen_machine = (split(/\s+/,$chosen_machine_info))[0];
 }
-close PIPE;
-
-my $chosen_machine_info = &getPick(\@list);
-my $chosen_machine = (split(/\s+/,$chosen_machine_info))[0];
-
 # Set the context to current machine
 my $env_command = "\$(docker-machine env $chosen_machine)";
 print "eval $env_command\n";
