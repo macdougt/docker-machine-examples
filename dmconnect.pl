@@ -14,9 +14,9 @@ my $chosen_machine_info = &getPick(\@list);
 my $chosen_machine = (split(/\s+/,$chosen_machine_info))[0];
 
 # Set the context to current machine
-my $env_command = "eval \$(docker-machine env $chosen_machine)";
-print $env_command;
-#&execute_in_outer_shell($env_command);
+my $env_command = "\$(docker-machine env $chosen_machine)";
+print "eval $env_command\n";
+&create_shell_script($env_command);
 
 #my $output = qx($env_command);
 #print "Output\n--------------\n$output\n---------------";
@@ -25,21 +25,21 @@ print $env_command;
 #print "Connected to $chosen_machine\n";
 
 
-sub execute_in_outer_shell {
+sub create_shell_script {
   my $file_content = shift;
   # create temp file
-  use File::Temp qw(tempfile);
-
+  #use File::Temp qw(tempfile);
+  my $filename = "/tmp/tempytemp";
   # just the handle
-  $fh = tempfile( );
+  #$fh = tempfile( );
 
   # handle and filename
-  ($fh, $filename) = tempfile( );
+  #($fh, $filename) = tempfile( );
   open (FILE, "> $filename") || die "Sorry, I couldn't write $filename.\n";
     print FILE $file_content;
   close FILE;
 
-  print " Created temp file $filename\n";
+  print "Created temp file $filename\n";
 
 }
 

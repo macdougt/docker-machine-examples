@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+perl dmconnect.pl > /tmp/tempytemp
+chmod +x /tmp/tempytemp
+/tmp/tempytmemp
+
+
